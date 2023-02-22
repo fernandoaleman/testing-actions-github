@@ -3,8 +3,8 @@ on:
   push:
 
 jobs:
-  testing_actions:
-    name: Testing Rubocop and Bundler Audit | Job
+  cache:
+    name: Setup Cache | Job
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -36,15 +36,35 @@ jobs:
         run: |
           whereis wkhtmltopdf || true
 
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
+  test:
+    name: Testing | Job
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      # It is required to execute the cache action.
+      #   id: It will be use in the cache anything action.
+      #   path: It always should be start with 'runner.temp'.
+      - name: Step -> Generate cache
+        id: cache-id
+        uses: actions/cache@v3
         with:
-          bundler-cache: true
+          path: ${{ runner.temp }}/cache
+          key: cache-wkhtmltopdf-v1
 
-      - name: Step -> Rubocop
-        run: bundle exec rubocop
-
-      - name: Step -> Bundler Audit
+      - name: Step -> Use the cache
         run: |
-          bundle exec bundler-audit update
-          bundle exec bundler-audit
+          whereis wkhtmltopdf || true
+
+      # - name: Setup Ruby
+      #   uses: ruby/setup-ruby@v1
+      #   with:
+      #     bundler-cache: true
+      #
+      # - name: Step -> Rubocop
+      #   run: bundle exec rubocop
+      #
+      # - name: Step -> Bundler Audit
+      #   run: |
+      #     bundle exec bundler-audit update
+      #     bundle exec bundler-audit
