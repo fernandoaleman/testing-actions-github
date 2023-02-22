@@ -14,9 +14,9 @@ jobs:
       #   path: It always should be start with 'runner.temp'.
       - name: Step -> Generate cache
         id: cache-id
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
-          path: ${{ runner.temp }}/cache-directory-example
+          path: ${{ runner.temp }}/cache
           key: cache-wkhtmltopdf-v1
 
       # Implement the cache anything action.
@@ -24,14 +24,27 @@ jobs:
       #   cache: It should be the same as the cache 'path'. The default prefix is '${{ runner.temp }}/' for this reason
       #          it's not required in this field.
       - name: Step -> Cache anything
-        uses: airvzxf/cache-anything-new-action@main
+        uses: airvzxf/cache-anything-new-action@v1.0.1
         with:
           script: 'install.sh'
           is_cached: ${{ steps.cache-id.outputs.cache-hit }}
-          cache: ${{ runner.temp }}/cache-directory-example
+          cache: ${{ runner.temp }}/cache
           snapshot: '/'
           exclude: '/boot /data /dev /mnt /proc /run /sys'
 
       - name: Step -> Use the cache
         run: |
           whereis wkhtmltopdf || true
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Step -> Rubocop
+        run: bundle exec rubocop
+
+      - name: Step -> Bundler Audit
+        run: |
+          bundle exec bundler-audit update
+          bundle exec bundler-audit
