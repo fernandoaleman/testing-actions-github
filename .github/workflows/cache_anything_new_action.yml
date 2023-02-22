@@ -4,7 +4,7 @@ on:
 
 jobs:
   testing_actions:
-    name: Testing Actions | Job
+    name: Testing Rubocop and Bundler Audit | Job
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
