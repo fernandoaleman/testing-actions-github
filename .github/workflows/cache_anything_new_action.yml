@@ -26,7 +26,7 @@ jobs:
 
   bundler-audit:
     name: Bundler Audit
-    needs: [cache, rubocop]
+    needs: cache
     runs-on: ubuntu-latest
 
     steps:
@@ -59,7 +59,7 @@ jobs:
 
   rubocop:
     name: Rubocop Test
-    needs: cache
+    needs: [cache, rubocop]
     runs-on: ubuntu-latest
 
     steps:
