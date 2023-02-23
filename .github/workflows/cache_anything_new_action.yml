@@ -4,80 +4,85 @@ on:
 
 jobs:
   cache:
-    name: Setup Cache | Job
+    name: Setup Cache
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
-      # It is required to execute the cache action.
-      #   id: It will be use in the cache anything action.
-      #   path: It always should be start with 'runner.temp'.
-      - name: Step -> Generate cache
+      - name: Step -> Setup cache
         id: cache-id
         uses: actions/cache@v3
         with:
           path: ${{ runner.temp }}/cache
           key: cache-wkhtmltopdf-v1
 
-      # Implement the cache anything action.
-      #   is_cached: Use the previous cache action id.
-      #   cache: It should be the same as the cache 'path'. The default prefix is '${{ runner.temp }}/' for this reason
-      #          it's not required in this field.
-      - name: Step -> Cache anything
+      - name: Step -> Create cache if needed
         uses: airvzxf/cache-anything-new-action@v1.0.1
         with:
           script: 'install.sh'
           is_cached: ${{ steps.cache-id.outputs.cache-hit }}
           cache: ${{ runner.temp }}/cache
-          snapshot: '/'
-          exclude: '/boot /data /dev /mnt /proc /run /sys'
 
-      - name: Step -> Use the cache
-        run: |
-          whereis wkhtmltopdf || true
-
-  test:
-    name: Testing | Job
+  rubocop:
+    name: Rubocop Test
+    needs: cache
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
 
-      # It is required to execute the cache action.
-      #   id: It will be use in the cache anything action.
-      #   path: It always should be start with 'runner.temp'.
-      - name: Step -> Generate cache
+    steps:
+      - name: Step -> Checkout code
+        uses: actions/checkout@v3
+
+      - name: Step -> Setup cache
         id: cache-id
         uses: actions/cache@v3
         with:
           path: ${{ runner.temp }}/cache
           key: cache-wkhtmltopdf-v1
 
-      # Implement the cache anything action.
-      #   is_cached: Use the previous cache action id.
-      #   cache: It should be the same as the cache 'path'. The default prefix is '${{ runner.temp }}/' for this reason
-      #          it's not required in this field.
-      - name: Step -> Cache anything
+      - name: Step -> Create cache if needed
         uses: airvzxf/cache-anything-new-action@v1.0.1
         with:
           script: 'install.sh'
           is_cached: ${{ steps.cache-id.outputs.cache-hit }}
           cache: ${{ runner.temp }}/cache
-          snapshot: '/'
-          exclude: '/boot /data /dev /mnt /proc /run /sys'
 
-      - name: Step -> Use the cache
+      - name: Step -> Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Step -> Run Rubocop test
+        run: bundle exec rubocop
+
+  bundler-audit:
+    name: Bundler Audit
+    needs: [cache, rubocop]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Step -> Checkout code
+        uses: actions/checkout@v3
+
+      - name: Step -> Setup cache
+        id: cache-id
+        uses: actions/cache@v3
+        with:
+          path: ${{ runner.temp }}/cache
+          key: cache-wkhtmltopdf-v1
+
+      - name: Step -> Create cache if needed
+        uses: airvzxf/cache-anything-new-action@v1.0.1
+        with:
+          script: 'install.sh'
+          is_cached: ${{ steps.cache-id.outputs.cache-hit }}
+          cache: ${{ runner.temp }}/cache
+
+      - name: Step -> Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Step -> Bundler Audit
         run: |
-          whereis wkhtmltopdf || true
-
-      # - name: Setup Ruby
-      #   uses: ruby/setup-ruby@v1
-      #   with:
-      #     bundler-cache: true
-      #
-      # - name: Step -> Rubocop
-      #   run: bundle exec rubocop
-      #
-      # - name: Step -> Bundler Audit
-      #   run: |
-      #     bundle exec bundler-audit update
-      #     bundle exec bundler-audit
+          bundle exec bundler-audit update
+          bundle exec bundler-audit
