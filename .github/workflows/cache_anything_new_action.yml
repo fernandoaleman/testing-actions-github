@@ -1,33 +1,11 @@
-name: CI - Testing Cache Anything New | Action
+name: CI - Testing | Action
 on:
   push:
 
 jobs:
   cache:
-    name: Setup Cache
+    name: Create Cache If Needed
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Step -> Setup cache
-        id: cache-id
-        uses: actions/cache@v3
-        with:
-          path: ${{ runner.temp }}/cache
-          key: strangler-cache-${{ hashFiles('**/Gemfile.lock') }}
-
-      - name: Step -> Create cache if needed
-        uses: airvzxf/cache-anything-new-action@v1.0.1
-        with:
-          script: 'install.sh'
-          is_cached: ${{ steps.cache-id.outputs.cache-hit }}
-          cache: ${{ runner.temp }}/cache
-
-  rubocop:
-    name: Rubocop Test
-    needs: cache
-    runs-on: ubuntu-latest
-
     steps:
       - name: Step -> Checkout code
         uses: actions/checkout@v3
@@ -45,14 +23,6 @@ jobs:
           script: 'install.sh'
           is_cached: ${{ steps.cache-id.outputs.cache-hit }}
           cache: ${{ runner.temp }}/cache
-
-      - name: Step -> Setup Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          bundler-cache: true
-
-      - name: Step -> Run Rubocop test
-        run: bundle exec rubocop
 
   bundler-audit:
     name: Bundler Audit
@@ -63,14 +33,14 @@ jobs:
       - name: Step -> Checkout code
         uses: actions/checkout@v3
 
-      - name: Step -> Setup cache
+      - name: Step -> Access cache
         id: cache-id
         uses: actions/cache@v3
         with:
           path: ${{ runner.temp }}/cache
           key: strangler-cache-${{ hashFiles('**/Gemfile.lock') }}
 
-      - name: Step -> Create cache if needed
+      - name: Step -> Load cache
         uses: airvzxf/cache-anything-new-action@v1.0.1
         with:
           script: 'install.sh'
@@ -86,3 +56,34 @@ jobs:
         run: |
           bundle exec bundler-audit update
           bundle exec bundler-audit
+
+  rubocop:
+    name: Rubocop Test
+    needs: cache
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Step -> Checkout code
+        uses: actions/checkout@v3
+
+      - name: Step -> Access cache
+        id: cache-id
+        uses: actions/cache@v3
+        with:
+          path: ${{ runner.temp }}/cache
+          key: strangler-cache-${{ hashFiles('**/Gemfile.lock') }}
+
+      - name: Step -> Load cache
+        uses: airvzxf/cache-anything-new-action@v1.0.1
+        with:
+          script: 'install.sh'
+          is_cached: ${{ steps.cache-id.outputs.cache-hit }}
+          cache: ${{ runner.temp }}/cache
+
+      - name: Step -> Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Step -> Run Rubocop test
+        run: bundle exec rubocop
