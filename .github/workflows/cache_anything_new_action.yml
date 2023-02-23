@@ -59,7 +59,7 @@ jobs:
 
   rubocop:
     name: Rubocop Test
-    needs: [cache, rubocop]
+    needs: [cache, bundler-audit]
     runs-on: ubuntu-latest
 
     steps:
