@@ -10,19 +10,23 @@ jobs:
       - name: Step -> Checkout code
         uses: actions/checkout@v3
 
-      - name: Step -> Setup cache
+      - name: Step -> Generate cache
         id: cache-id
         uses: actions/cache@v3
         with:
           path: ${{ runner.temp }}/cache
-          key: strangler-cache-${{ hashFiles('**/Gemfile.lock') }}
+          key: strangler-cache-${{ github.ref_name }}-v1
 
-      - name: Step -> Create cache if needed
+      - name: Step -> Cache anything
         uses: airvzxf/cache-anything-new-action@v1.0.1
         with:
           script: 'install.sh'
           is_cached: ${{ steps.cache-id.outputs.cache-hit }}
           cache: ${{ runner.temp }}/cache
+
+      - name: Step -> Use cache
+        run: |
+          whereis wkhtmltopdf || true
 
   bundler-audit:
     name: Bundler Audit
@@ -33,14 +37,14 @@ jobs:
       - name: Step -> Checkout code
         uses: actions/checkout@v3
 
-      - name: Step -> Access cache
+      - name: Step -> Generate cache
         id: cache-id
         uses: actions/cache@v3
         with:
           path: ${{ runner.temp }}/cache
-          key: strangler-cache-${{ hashFiles('**/Gemfile.lock') }}
+          key: strangler-cache-${{ github.ref_name }}-v1
 
-      - name: Step -> Load cache
+      - name: Step -> Cache anything
         uses: airvzxf/cache-anything-new-action@v1.0.1
         with:
           script: 'install.sh'
@@ -66,14 +70,14 @@ jobs:
       - name: Step -> Checkout code
         uses: actions/checkout@v3
 
-      - name: Step -> Access cache
+      - name: Step -> Generate cache
         id: cache-id
         uses: actions/cache@v3
         with:
           path: ${{ runner.temp }}/cache
-          key: strangler-cache-${{ hashFiles('**/Gemfile.lock') }}
+          key: strangler-cache-${{ github.ref_name }}-v1
 
-      - name: Step -> Load cache
+      - name: Step -> Cache anything
         uses: airvzxf/cache-anything-new-action@v1.0.1
         with:
           script: 'install.sh'
